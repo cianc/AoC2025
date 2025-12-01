@@ -19,9 +19,10 @@ class Dial(object):
         direction, distance = movement
 
         if direction == 'R':
-            total_distance_from_zero = self.position + distance
-            self.position = (self.position + distance) % self.numbers
-        elif direction == 'L':
+            new_pos_val = self.position + distance
+            total_distance_from_zero = new_pos_val
+            self.position = new_pos_val % self.numbers
+        else:  # direction == 'L'
             # We have to `% self.numbers` to account for when current posistion is 0.
             # Technically the case for 'R' should be `(self.position - 0) % self.numbers`
             total_distance_from_zero = ((self.numbers - self.position) % self.numbers) + distance
