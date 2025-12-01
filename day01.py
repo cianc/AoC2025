@@ -14,24 +14,20 @@ class Dial(object):
     
     def _turn(self, movement: tuple[str, int]) -> None:
         direction, distance = movement
-        full_rotations = distance // self.numbers
-        remaining_clicks = distance % self.numbers
-        zero_clicks = full_rotations
 
         if direction == 'R':
-            new_position = (self.position + remaining_clicks) % self.numbers
-            if remaining_clicks >= (self.numbers - self.position):
-                zero_clicks += 1
+            total_distance_from_zero = self.position + distance
+            self.position = (self.position + distance) % self.numbers
         elif direction == 'L':
-            new_position = (self.position - remaining_clicks) % self.numbers
-            if remaining_clicks >= self.position and self.position != 0:
-                zero_clicks += 1
-        
-        self.position = new_position
+            # We have to `% self.numbers` to account for when current posistion is 0.
+            # Technically the case for 'R' should be `(self.position - 0) % self.numbers`
+            total_distance_from_zero = ((self.numbers - self.position) % self.numbers) + distance
+            self.position = (self.position - distance) % self.numbers
+
         if self.position == 0:
             self.old_password += 1
-        self.new_password += zero_clicks
 
+        self.new_password += total_distance_from_zero // self.numbers
                 
     def apply_movements(self):
         for movement in self.movements:
@@ -40,6 +36,7 @@ class Dial(object):
 if __name__ == '__main__':
     dial = Dial(100)
     dial.parse_input('day01_input01.txt')
+    #dial.parse_input('day01_test_input01.txt')
     dial.apply_movements()
     print(f"password: {dial.old_password}")
     print(f"new password: {dial.new_password}")
