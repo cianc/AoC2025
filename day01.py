@@ -4,7 +4,7 @@ import sys
 
 
 class Dial(object):
-    def __init__(self, numbers, visualise=False):
+    def __init__(self, numbers: int, visualise: bool=False):
         self.numbers = numbers
         self.old_password = 0
         self.new_password = 0
@@ -18,9 +18,8 @@ class Dial(object):
                 if line:
                     yield (line[0], int(line[1:]))
     
-    def _visualize_turn(self, movement):
+    def _visualize_turn(self, movement: tuple[str, int]):
         """Prints a single frame of the dial animation."""
-        # Determine the correct clear command based on the OS
         os.system('clear')
 
         vis_width = 50
@@ -67,7 +66,7 @@ class Dial(object):
 
         self.new_password += total_distance_from_zero // self.numbers
                 
-    def apply_movements(self, movements):
+    def apply_movements(self, movements: tuple[str, int]):
         for movement in movements:
             self._turn(movement)
         # Print a final blank line to move past the animation
