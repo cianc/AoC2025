@@ -25,8 +25,6 @@ def parse_input(filename: str) -> Tuple[List[List[str]], List[Tuple[int, int]]]:
 def count_and_remove_accessible_rolls(warehouse: List[List[str]], rolls: List[Tuple[int, int]]) -> Tuple[int, List[List[str]], List[Tuple[int, int]]]:
     rolls_to_remove = []
     max_row_index = len(warehouse) - 1
-    if max_row_index < 0:
-        return 0, warehouse, rolls
     num_col_index = len(warehouse[0]) - 1
 
     for roll in rolls:
