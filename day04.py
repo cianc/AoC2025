@@ -1,5 +1,6 @@
 import argparse
 import itertools
+import os
 import time
 
 from typing import List, Tuple
@@ -7,6 +8,16 @@ from typing import List, Tuple
 
 DELTAS = list(itertools.product((-1, 0, 1), repeat=2))
 DELTAS.remove((0, 0))
+
+
+def print_warehouse(warehouse: List[List[str]], removed_roll_count: int):
+    os.system('clear')
+    for row in warehouse:
+        print("".join(row))
+    if warehouse and warehouse[0]:
+        print("-" * len(warehouse[0]))
+    print(f"\nRemoved {removed_roll_count} rolls")
+    time.sleep(0.5)
 
 
 def parse_input(filename: str) -> Tuple[List[List[str]], List[Tuple[int, int]]]:
@@ -60,12 +71,15 @@ def count_and_remove_accessible_rolls(warehouse: List[List[str]], rolls: List[Tu
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', help="The input file with battery banks.")
+    parser.add_argument('--visualise', action='store_true', help="Show visualisation for part 2.")
     args = parser.parse_args()
 
     warehouse, rolls = parse_input(args.filename)
 
     part1_start_time = time.time()
-    accessible_roll_count, _, _ = count_and_remove_accessible_rolls(warehouse, rolls)
+    # Run part 1 on a copy of the warehouse to show visualization without affecting the original variable before re-parsing
+    p1_warehouse = [row[:] for row in warehouse]
+    accessible_roll_count, p1_warehouse, _ = count_and_remove_accessible_rolls(p1_warehouse, rolls)
     part1_end_time = time.time()
 
     print(f"part 1 accessible rolls: {accessible_roll_count} - time taken: {part1_end_time - part1_start_time:e}")
@@ -74,17 +88,23 @@ if __name__ == '__main__':
 
     warehouse, rolls = parse_input(args.filename)
     original_roll_count = len(rolls)
+    if args.visualise:
+        print("\nStarting Part 2. Initial state:")
+        print_warehouse(warehouse, 0)
 
     part2_start_time = time.time()
     previous_roll_count = original_roll_count
+    step = 0
     while True:
-        accessible_roll_count, warehouse, rolls = count_and_remove_accessible_rolls(warehouse, rolls)
-        # for row in warehouse:
-        #     print(''.join(row))
-        # print(f"removed rolls: {previous_roll_count - len(rolls)}")
-        # print('#' * 80)
+        step += 1
+        removed_roll_count, warehouse, rolls = count_and_remove_accessible_rolls(warehouse, rolls)
+        
         if len(rolls) == previous_roll_count:
             break
+        
+        if args.visualise:
+            print_warehouse(warehouse, removed_roll_count)
+
         previous_roll_count = len(rolls)
     part2_end_time = time.time()
     
