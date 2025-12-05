@@ -10,7 +10,7 @@ def parse_inventory(filename: str) -> Tuple[List[List[int]], List[int]]:
     ingredients = []
     with open(filename, "r") as f:
         in_ranges = True
-        for line in f.readlines():
+        for line in f:
             line = line.strip()
             if not line:
                 in_ranges = False
@@ -19,7 +19,7 @@ def parse_inventory(filename: str) -> Tuple[List[List[int]], List[int]]:
                 start, stop = line.split("-")
                 fresh_ranges.append([int(start), int(stop)])
             else:
-                ingredients.append(int(line.strip()))
+                ingredients.append(int(line))
 
     return fresh_ranges, ingredients
 
