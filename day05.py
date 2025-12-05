@@ -1,4 +1,5 @@
 import argparse
+import bisect
 import os
 import sys
 import time
@@ -39,11 +40,25 @@ def merge_ranges(ranges: List[List[int]]) -> List[List[int]]:
 def fresh_or_spoiled(fresh_ranges: List[List[int]], ingredients: List[int]) -> Tuple[List[int], List[int]]:
     fresh = []
     spoiled = []
+    
+    # fresh_ranges is already sorted by start from merge_ranges
+    range_starts = [r[0] for r in fresh_ranges]
+
     for ingredient in ingredients:
-        for start, stop in fresh_ranges:
-            if start <= ingredient <= stop:
-                fresh.append(ingredient)
-                break
+        # Find insertion point of ingredient in the list of start times.
+        # This gives us the index of the first range that starts *after* the ingredient.
+        idx = bisect.bisect_right(range_starts, ingredient)
+        
+        # If idx is 0, the ingredient is smaller than all range starts.
+        if idx == 0:
+            spoiled.append(ingredient)
+            continue
+
+        # The candidate range is the one at idx-1.
+        # We need to check if the ingredient is within its bounds.
+        candidate_range = fresh_ranges[idx - 1]
+        if candidate_range[0] <= ingredient <= candidate_range[1]:
+            fresh.append(ingredient)
         else:
             spoiled.append(ingredient)
 
