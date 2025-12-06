@@ -39,7 +39,7 @@ def part1(filename: str) -> List:
 def part2(filename: str) -> List:
     '''
     We have to scan the whole file before we do any work because we need
-    to construct columns since numbers and columnar.
+    to construct columns since numbers are columnar.
     '''
     answers = []
     with open(filename, 'r') as f:
