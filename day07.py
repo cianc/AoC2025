@@ -2,7 +2,7 @@ import argparse
 import copy
 import time
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 
 def parse_manifold(filename: str) -> List[str]:
@@ -37,7 +37,30 @@ def plot_classical_beam(manifold: List[str]) -> Tuple[List[str], int]:
 
     return plot, split_count
 
-def count_quantum_timelines(beam_plot: List[str]) -> int:
+def visualize_timeline_evolution(beam_plot: List[str], history: List[List[int]], timeline_count: int):
+    """
+    Prints the step-by-step evolution of quantum timelines.
+    """
+    print("\nVisualizing quantum timeline evolution...")
+
+    print("\nBeam Plot for context:")
+    for row in beam_plot:
+        print("".join(row))
+
+    print("\nTimeline distribution at each split:")
+    for i, distrib in enumerate(history):
+        line = f"Step {i:02d}: "
+        for val in distrib:
+            if val == 0:
+                line += "     . "
+            else:
+                line += f"{val: >6d} "
+        print(line)
+
+    print(f"\nFinal timeline count from visualization: {timeline_count}")
+
+
+def count_quantum_timelines(beam_plot: List[str], get_history: bool = False) -> Union[int, Tuple[int, List[List[int]]]]:
     '''
     At first I tried to solve this with a regular DFS to walk all possible
     paths and count them. It was very slow, probably caching would have
@@ -49,18 +72,26 @@ def count_quantum_timelines(beam_plot: List[str]) -> int:
     side (assuming we're not at an edge).
     '''
     timelines = [int(c == 'S') for c in beam_plot[0]]
+    history = [list(timelines)] if get_history else None
+
     for row_idx, row in enumerate(beam_plot):
         for c_idx, c in enumerate(row):
              if c in ('|', 'S'):
                  if row_idx + 1 < len(beam_plot):
                      if beam_plot[row_idx+1][c_idx] == '^':
-                        if c_idx - 1 >= 0:
-                            timelines[c_idx - 1] += timelines[c_idx]
-                        if c_idx + 1 < len(row):
-                            timelines[c_idx + 1] += timelines[c_idx]
-                        timelines[c_idx] = 0
+                        if timelines[c_idx] > 0:
+                            if c_idx - 1 >= 0:
+                                timelines[c_idx - 1] += timelines[c_idx]
+                            if c_idx + 1 < len(row):
+                                timelines[c_idx + 1] += timelines[c_idx]
+                            timelines[c_idx] = 0
+                            if get_history:
+                                history.append(list(timelines))
 
-    return sum(timelines)
+    total_timelines = sum(timelines)
+    if get_history:
+        return total_timelines, history
+    return total_timelines
                  
 
 if __name__ == '__main__':
@@ -81,7 +112,11 @@ if __name__ == '__main__':
     #################
 
     part2_start = time.time()
-    timeline_count = count_quantum_timelines(beam_plot)
+    if args.visualise:
+        timeline_count, history = count_quantum_timelines(beam_plot, get_history=True)
+        visualize_timeline_evolution(beam_plot, history, timeline_count)
+    else:
+        timeline_count = count_quantum_timelines(beam_plot)
     part2_end = time.time()
 
     print(f"part2 answer: {timeline_count} - time: {part2_end - part2_start:e}")
