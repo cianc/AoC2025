@@ -37,58 +37,31 @@ def plot_classical_beam(manifold: List[str]) -> Tuple[List[str], int]:
 
     return plot, split_count
 
+def count_quantum_timelines(beam_plot: List[str]) -> int:
+    '''
+    At first I tried to solve this with a regular DFS to walk all possible
+    paths and count them. It was very slow, probably caching would have
+    helped.
+    This approach is much more straight forward. Start at the top of the
+    grid, go down row by row, keeping track of all splits and adjusting
+    possible path counts as we go. Paths (plural, because we can and do have
+    multiple overlapping paths) hitting a splitter create paths on each
+    side (assuming we're not at an edge).
+    '''
+    timelines = [int(c == 'S') for c in beam_plot[0]]
+    for row_idx, row in enumerate(beam_plot):
+        for c_idx, c in enumerate(row):
+             if c in ('|', 'S'):
+                 if row_idx + 1 < len(beam_plot):
+                     if beam_plot[row_idx+1][c_idx] == '^':
+                        if c_idx - 1 >= 0:
+                            timelines[c_idx - 1] += timelines[c_idx]
+                        if c_idx + 1 < len(row):
+                            timelines[c_idx + 1] += timelines[c_idx]
+                        timelines[c_idx] = 0
 
-def plot_quantum_beam(manifold: List[str]) -> int:
-    manifold_width = len(manifold[0])
-    manifold_depth = len(manifold)
-    #print(f"manifold_depth: {manifold_depth}")
-    #for row in manifold:
-    #    print(''.join(row))
-    #print('=================')
-
-
-    if manifold_depth == 1:
-     #   time.sleep(0.5)
-        return 1
-
-    timeline_count = 0
-
-    for c_idx, c in enumerate(manifold[0]):
-        #print(f"c_idx: {c_idx}, c: {c}")
-        if c in ('|', 'S'):
-            if manifold[1][c_idx] == '^':
-                if c_idx - 1 >= 0:
-                    manifold[1][c_idx - 1] = '|' 
-                    timeline_count += plot_quantum_beam(manifold[1:])
-                    if timeline_count % 1000 == 0:
-                        print(f"timeline_count: {timeline_count}")
-                    manifold[1][c_idx - 1] = '.'
-                    #print(f"manifold_depth2: {manifold_depth} - timeline_count: {timeline_count}")
-                if c_idx + 1 < manifold_width:
-                    manifold[1][c_idx + 1] = '|'
-                    timeline_count += plot_quantum_beam(manifold[1:])
-                    if timeline_count % 1000 == 0:
-                        print(f"timeline_count: {timeline_count}")
-                    manifold[1][c_idx + 1] = '.'
-                    #print(f"manifold_depth3: {manifold_depth} - timeline_count: {timeline_count}")
-                
-            else:
-                manifold[1][c_idx] = '|'
-                timeline_count += plot_quantum_beam(manifold[1:])
-                if timeline_count % 1000 == 0:
-                    print(f"timeline_count: {timeline_count}")
-                manifold[1][c_idx] = '.'
-                #print(f"manifold_depth4: {manifold_depth} - timeline_count: {timeline_count}")
-    #print(f"Finished manifold_depth: {manifold_depth} - timeline_count: {timeline_count}")
-
-
-    #time.sleep(0.5)
-    return timeline_count
-
-
-
-
-
+    return sum(timelines)
+                 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -108,7 +81,7 @@ if __name__ == '__main__':
     #################
 
     part2_start = time.time()
-    timeline_count = plot_quantum_beam(manifold)
+    timeline_count = count_quantum_timelines(beam_plot)
     part2_end = time.time()
 
     print(f"part2 answer: {timeline_count} - time: {part2_end - part2_start:e}")
