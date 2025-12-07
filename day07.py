@@ -60,17 +60,23 @@ def plot_quantum_beam(manifold: List[str]) -> int:
                 if c_idx - 1 >= 0:
                     manifold[1][c_idx - 1] = '|' 
                     timeline_count += plot_quantum_beam(manifold[1:])
+                    if timeline_count % 1000 == 0:
+                        print(f"timeline_count: {timeline_count}")
                     manifold[1][c_idx - 1] = '.'
                     #print(f"manifold_depth2: {manifold_depth} - timeline_count: {timeline_count}")
                 if c_idx + 1 < manifold_width:
                     manifold[1][c_idx + 1] = '|'
                     timeline_count += plot_quantum_beam(manifold[1:])
+                    if timeline_count % 1000 == 0:
+                        print(f"timeline_count: {timeline_count}")
                     manifold[1][c_idx + 1] = '.'
                     #print(f"manifold_depth3: {manifold_depth} - timeline_count: {timeline_count}")
                 
             else:
                 manifold[1][c_idx] = '|'
                 timeline_count += plot_quantum_beam(manifold[1:])
+                if timeline_count % 1000 == 0:
+                    print(f"timeline_count: {timeline_count}")
                 manifold[1][c_idx] = '.'
                 #print(f"manifold_depth4: {manifold_depth} - timeline_count: {timeline_count}")
     #print(f"Finished manifold_depth: {manifold_depth} - timeline_count: {timeline_count}")
