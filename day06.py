@@ -2,10 +2,10 @@ import argparse
 import functools
 import time
 
-from typing import List, Tuple
+from typing import List, Union
 
 
-def part1(filename: str) -> List:
+def part1(filename: str) -> List[List[Union[str, int]]]:
     '''
     We read the file in reverse to see the relevant operator for
     each column and then maintain a running total as we read backwards.
@@ -36,7 +36,7 @@ def part1(filename: str) -> List:
     return answers
 
 
-def part2(filename: str) -> List:
+def part2(filename: str) -> List[int]:
     '''
     We have to scan the whole file before we do any work because we need
     to construct columns since numbers are columnar.
