@@ -48,7 +48,7 @@ def connect_nearest_n_jboxes(jboxes: JBoxDict, pairs_by_distance: List[Tuple[JBo
             _jboxes[j2].append(j1)
             connections += 1
         pair_idx += 1
-    return _jboxes
+    return _jboxes, (j1, j2)
 
 
 def _recursive_count_circuit_size(jbox: JBox, jboxes: JBoxDict, visited_jboxes: Set[JBox]) -> Tuple[int, Set[JBox]]:
@@ -80,6 +80,18 @@ def count_circuits(jboxes: JBoxDict) -> List[int]:
            
     return circuit_sizes
 
+def connect_until_single_circuit(jboxes: JBoxDict, jbox_pairs_by_distance: List[Tuple[JBox, JBox]]) -> Tuple[JBox, JBox]:
+    _jboxes = copy.deepcopy(jboxes)
+    circuit_count = sum(int(bool(c)) for c in count_circuits(_jboxes))
+    while True:
+        # Small optimisation. If we want 1 circuit, and we currently have n, we know we need to connect
+        # at least n-1 junction boxes to get to 1 circuit.
+        _jboxes, last_connected_pair = connect_nearest_n_jboxes(_jboxes, jbox_pairs_by_distance, circuit_count - 1)
+        circuit_count = sum(int(bool(c)) for c in count_circuits(_jboxes))
+        if circuit_count == 1:
+            return last_connected_pair
+    
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', help="The input file with battery banks.")
@@ -90,8 +102,16 @@ if __name__ == '__main__':
 
     part1_start_time = time.time()
     jbox_pairs_by_distance = create_jbox_pairs_by_distance(jboxes)
-    connected_jboxes = connect_nearest_n_jboxes(jboxes, jbox_pairs_by_distance, args.connections)
+    connected_jboxes, _ = connect_nearest_n_jboxes(jboxes, jbox_pairs_by_distance, args.connections)
     circuit_count = count_circuits(connected_jboxes)
     part1_end_time = time.time()
 
     print(f"part 1 answer: {functools.reduce(lambda x, y: x * y, sorted(circuit_count, reverse=True)[:3])} - time: {part1_end_time - part1_start_time:e} seconds")
+
+    ######################
+
+    part2_start_time = time.time()
+    last_connected_pair = connect_until_single_circuit(jboxes, jbox_pairs_by_distance)
+    part2_end_time = time.time()
+
+    print(f"part 2 answer: {last_connected_pair[0][0] * last_connected_pair[1][0]} - time: {part2_end_time - part2_start_time:e} seconds")
