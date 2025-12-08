@@ -4,22 +4,28 @@ import functools
 import math
 import time
 
-from typing import List, Tuple
+from typing import Dict, List, Set, Tuple
 
-def create_jboxes_from_input(filename: str) -> dict:
+JBox = Tuple[int, int, int]
+JBoxDict = Dict[JBox, List[JBox]]
+
+
+def create_jboxes_from_input(filename: str) -> JBoxDict:
     jboxes = {}
     with open(filename, 'r') as f:
         lines = [l.strip().split(',') for l in f.readlines()]
         for l in lines:
-            jboxes[int(l[0]), int(l[1]), int(l[2])] = []
+            jboxes[(int(l[0]), int(l[1]), int(l[2]))] = []
     return jboxes
 
-def create_jbox_pairs_by_distance(jboxes: dict) -> List[Tuple[Tuple[int, ...], Tuple[int, ...]]]:
+
+def create_jbox_pairs_by_distance(jboxes: JBoxDict) -> List[Tuple[JBox, JBox]]:
     pairs_to_distance = {}
     for jbox in jboxes.keys():
         for other_jbox in jboxes.keys():
             if jbox == other_jbox:
                 continue
+            # Ensure we only calculate distance for each pair once
             if (other_jbox, jbox) in pairs_to_distance:
                 continue
             pairs_to_distance[(jbox, other_jbox)] = math.dist(jbox, other_jbox)
@@ -27,21 +33,25 @@ def create_jbox_pairs_by_distance(jboxes: dict) -> List[Tuple[Tuple[int, ...], T
     # Sort the pairs of elements by their distance in ascending order
     pairs_by_distance = [pair for pair, _ in sorted(pairs_to_distance.items(), key=lambda x: x[1])]
     return pairs_by_distance
-    
-def connect_nearest_n_jboxes(jboxes: dict, pairs_by_distance: List[Tuple[Tuple[int, ...], Tuple[int, ...]]], n: int) -> List[dict]:
+
+
+def connect_nearest_n_jboxes(jboxes: JBoxDict, pairs_by_distance: List[Tuple[JBox, JBox]], n: int) -> JBoxDict:
     _jboxes = copy.deepcopy(jboxes)
 
     connections = 0
-    while connections < n:
-         for j1, j2 in pairs_by_distance:
-             if j2 not in _jboxes[j1]:
-                 _jboxes[j1].append(j2)
-                 _jboxes[j2].append(j1)
-                 connections += 1
-                 break
+    pair_idx = 0
+    while connections < n and pair_idx < len(pairs_by_distance):
+        j1, j2 = pairs_by_distance[pair_idx]
+        # Connect if not already connected
+        if j2 not in _jboxes[j1]:
+            _jboxes[j1].append(j2)
+            _jboxes[j2].append(j1)
+            connections += 1
+        pair_idx += 1
     return _jboxes
 
-def _recursive_count_circuit_size(jbox, jboxes, visited_jboxes):
+
+def _recursive_count_circuit_size(jbox: JBox, jboxes: JBoxDict, visited_jboxes: Set[JBox]) -> Tuple[int, Set[JBox]]:
     visited_jboxes.add(jbox)
     if not jboxes[jbox]:
         return 1, visited_jboxes
@@ -57,7 +67,7 @@ def _recursive_count_circuit_size(jbox, jboxes, visited_jboxes):
     return count, visited_jboxes
 
 
-def count_circuits(jboxes: dict) -> List[int]:
+def count_circuits(jboxes: JBoxDict) -> List[int]:
     circuit_sizes = []
     visited_jboxes = set()
 
