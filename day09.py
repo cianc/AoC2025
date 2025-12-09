@@ -161,7 +161,7 @@ if __name__ == "__main__":
     part2_start_time = time.time()
     red_and_all_green_tiles = red_and_green_edge_tiles(red_tiles)
     red_and_green_ranges = red_and_green_full_ranges(red_and_all_green_tiles)
-    max_area = max_area_only_green3(red_tiles, red_and_green_ranges)
+    max_area = max_area_only_green2(red_tiles, red_and_green_ranges)
     part2_end_time = time.time()
 
     print(f"part 2 answer: {max_area} - time: {part2_end_time - part2_start_time:e} seconds")
