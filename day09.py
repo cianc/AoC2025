@@ -51,6 +51,27 @@ def red_and_green_edge_tiles(red_tiles: List[Tuple[int, int]]) -> List[Tuple[int
     return red_and_green_tiles
 
 
+def square_contains_red_or_green_tile_optimized(
+    corners: Tuple[Tuple[int, int], Tuple[int, int]], 
+    sorted_tiles: List[Tuple[int, int]], 
+    sorted_tile_x_coords: List[int]
+) -> bool:
+    left_edge, right_edge = sorted([corners[0][0], corners[1][0]])
+    bottom_edge, top_edge = sorted([corners[0][1], corners[1][1]])
+
+    # Find the sub-list of tiles within the square's x-range using binary search
+    start_index = bisect.bisect_right(sorted_tile_x_coords, left_edge)
+    end_index = bisect.bisect_left(sorted_tile_x_coords, right_edge)
+
+    # Now, only check the y-coordinates for this much smaller slice
+    for i in range(start_index, end_index):
+        _, tile_y = sorted_tiles[i]
+        if bottom_edge < tile_y < top_edge:
+            return True
+
+    return False
+
+
 def red_and_green_full_ranges(red_and_green_edge_tiles: List[Tuple[int, int]]) -> Dict[int, Tuple[int, int]]:
     red_and_green_full_ranges = {}
     for edge_tile in red_and_green_edge_tiles:
@@ -69,13 +90,12 @@ def red_and_green_full_ranges(red_and_green_edge_tiles: List[Tuple[int, int]]) -
 
 
 def square_contains_red_or_green_tile(corners: Tuple[Tuple[int, int], Tuple[int, int]], red_and_green_tiles: List[Tuple[int, int]]) -> bool:
-    corner_1_x, corner_1_y = corners[0]
-    corner_2_x, corner_2_y = corners[1]
+    left_edge, right_edge = sorted([corners[0][0], corners[1][0]])
+    bottom_edge, top_edge = sorted([corners[0][1], corners[1][1]])
 
     for tile_x, tile_y in red_and_green_tiles:
-            if (corner_1_x < tile_x < corner_2_x) or (corner_2_x < tile_x < corner_1_x):
-                if (corner_1_y < tile_y < corner_2_y) or (corner_2_y < tile_y < corner_1_y):
-                    return True
+        if left_edge < tile_x < right_edge and bottom_edge < tile_y < top_edge:
+            return True
 
     return False
 
@@ -89,6 +109,9 @@ def _area(corners: Tuple[Tuple[int, int], Tuple[int, int]]) -> int:
 
 def max_area_only_green(red_tiles: List[Tuple[int, int]], red_and_green_tiles: List[Tuple[int, int]]) -> int:
     max_area = 0
+
+    sorted_red_and_green_tiles = sorted(red_and_green_tiles, key=lambda tile: tile[0])
+    sorted_red_and_green_tiles_x_coords = [tile[0] for tile in sorted_red_and_green_tiles]
     
     # Sort descending by distance between points since these are more likely to
     # cover larger squars and so create a new max.
@@ -101,6 +124,7 @@ def max_area_only_green(red_tiles: List[Tuple[int, int]], red_and_green_tiles: L
         area = _area(corners)
         if area > max_area:            
             if square_contains_red_or_green_tile(corners, red_and_green_tiles):
+            #if square_contains_red_or_green_tile_optimized(corners, sorted_red_and_green_tiles, sorted_red_and_green_tiles_x_coords):
                 continue
             else:
                 max_area = area
@@ -172,8 +196,14 @@ if __name__ == "__main__":
 
     part2_start_time = time.time()
     red_and_all_green_tiles = red_and_green_edge_tiles(red_tiles)
-    red_and_green_ranges = red_and_green_full_ranges(red_and_all_green_tiles)
-    max_area = max_area_only_green2(red_tiles, red_and_green_ranges)
+    # Currently the fastest method.
+    # Other methods implemented that are slower:
+    #   max_area_only_green2(red_tiles, red_and_green_ranges): operates on ranges on their overlaps
+    #   square_contains_red_or_green_tile_optimized() called from 
+    #   that attempts to prune the range of tiles to check against.
+    max_area = max_area_only_green(red_tiles, red_and_all_green_tiles)
+    #red_and_green_ranges = red_and_green_full_ranges(red_and_all_green_tiles)
+    #max_area = max_area_only_green(red_tiles, red_and_all_green_tiles)
     part2_end_time = time.time()
 
     print(f"part 2 answer: {max_area} - time: {part2_end_time - part2_start_time:e} seconds")
