@@ -112,13 +112,25 @@ def square_has_total_rg_overlap(corners: Tuple[Tuple[int, int], Tuple[int, int]]
     square_left_edge, square_right_edge = sorted([corners[0][0], corners[1][0]])
     square_top_edge, square_bottom_edge = sorted([corners[0][1], corners[1][1]])
 
-    for y in range(square_top_edge, square_bottom_edge+1):
-        if not red_and_green_ranges[y][0] <= square_left_edge <= red_and_green_ranges[y][1]:
-            return False
-        if not red_and_green_ranges[y][0] <= square_right_edge <= red_and_green_ranges[y][1]:
-            return False
+    y_range = range(square_top_edge, square_bottom_edge + 1)
 
-    return True
+    # If the square has no height, it trivially satisfies the condition.
+    if not y_range:
+        return True
+
+    try:
+        # Instead of looping and checking each row, we can find the most restrictive
+        # horizontal range across all rows the square occupies. This is done by finding
+        # the maximum of all left boundaries and the minimum of all right boundaries.
+        max_left_boundary = max(red_and_green_ranges[y][0] for y in y_range)
+        min_right_boundary = min(red_and_green_ranges[y][1] for y in y_range)
+    except KeyError:
+        # If any y-coordinate of the square is not in the ranges dictionary,
+        # it means there's no overlap, so we fail fast.
+        return False
+
+    # The entire square must fit within this single, most restrictive horizontal range.
+    return square_left_edge >= max_left_boundary and square_right_edge <= min_right_boundary
 
 
 def max_area_only_green2(red_tiles: List[Tuple[int, int]], red_and_green_ranges: Dict[int, Tuple[int, int]]) -> int:
