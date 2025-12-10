@@ -115,7 +115,7 @@ def part2(machines: List[Machine]) -> int:
         jolts_set = set(machine.jolts)
         while not solved:
             for buttons in itertools.combinations_with_replacement(machine.buttons, button_presses):
-                if buttons_set_jolts(buttons, machine.jolts, ts_set):
+                if buttons_set_jolts(buttons, machine.jolts, jolts_set):
                     button_press_count_sum += button_presses
                     solved = True
                     break
@@ -176,9 +176,6 @@ def _bfs_part2a(all_buttons: List[List[int]], target_jolts: List[int]):
     return button_press_count
 
 
-
-    
-
 def part2a(machines: List[Machine]) -> int:
     button_press_count_sum = 0
 
@@ -210,7 +207,7 @@ if __name__ == '__main__':
     ###################
 
     part2_start_time = time.time()
-    answer = part2a(machines)
+    answer = part2(machines)
     part2_end_time = time.time()
 
     print(f"part 2 answer: {answer} - time: {part2_end_time - part2_start_time:e} seconds")
