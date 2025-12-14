@@ -1,6 +1,7 @@
 import argparse
 import copy
 import itertools
+import scipy
 import time
 
 from typing import List, Tuple
@@ -170,8 +171,6 @@ def _bfs_part2a(all_buttons: List[List[int]], target_jolts: List[int]):
         button_press_count += 1
         print(f"button_press_count: {button_press_count}")
         
-
-        
        
     return button_press_count
 
@@ -185,6 +184,49 @@ def part2a(machines: List[Machine]) -> int:
 
     return button_press_count_sum
 
+
+def part2_linprog(machines: List[Machine]) -> int:
+    '''
+    Use scipy linear programming module, see 
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html
+
+    How we use it:
+    1. Create a set of constraints. Each value in machine.jolt, is a sum of button
+       pushes. Eg: if jolts are [3,5], that requires 3 pushes of any buttons that
+       toggles the first counter and 5 pushes of any buttons that toggles the second
+       counter. If we have two buttons (0,1) and (1,) we could write these constraints
+       as: x0 = 3; x0 + x1 = 5, where xn is the number of times a button is pushed.
+       These can be written as an equality contstraint matrix A=[[1,0],[1,1]] and an
+       equality constraint vector b=[3,5].
+    2. Create a vector for the function we want to minimise. In our case it's the
+        sum of the button presses, eg: x0+x1, or c=[1,1]
+    3. Create the bounds for our answers, we just want them to be positive so it's
+       (0, None) for each button count, or ((0, None), (0, None)) in our example.
+    4. We feed the above into scipy.optimize.linprod, setting `integrality=1` becase
+       we only want integer solutions.
+    '''
+    button_press_count_sum = 0
+
+    machine_idx = 1
+    for machine in machines:
+        print(f"{machine_idx}/{len(machines)}")
+
+        A = []
+        for jolt_idx, _ in enumerate(machine.jolts):
+            A.append([int(jolt_idx in button) for button in machine.buttons_list])
+        b = machine.jolts
+        c = [1 for _ in machine.buttons_list]
+        bounds = [(0, None) for _ in machine.buttons_list]
+
+        res=scipy.optimize.linprog(c, A_eq=A, b_eq=b, bounds=bounds, integrality=1)
+
+        print(f"res: {res.x}")
+
+        button_press_count_sum += int(sum(res.x))
+
+        machine_idx += 1
+
+    return button_press_count_sum
     
 
 
@@ -207,7 +249,7 @@ if __name__ == '__main__':
     ###################
 
     part2_start_time = time.time()
-    answer = part2(machines)
+    answer = part2_linprog(machines)
     part2_end_time = time.time()
 
     print(f"part 2 answer: {answer} - time: {part2_end_time - part2_start_time:e} seconds")
